@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thống Kê Phân Loại Áo</title>
+  <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: #003366;
+      margin-bottom: 20px;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 60%;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      font-size: 18px;
+    }
+    th {
+      background: #003366;
+      color: white;
+    }
+    td.count {
+      font-weight: bold;
+      color: #003366;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 Thống Kê Phân Loại Áo</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Loại Áo</th>
+        <th>Số Lượng</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Áo sọc dọc</td>
+        <td id="doc-count" class="count">0</td>
+      </tr>
+      <tr>
+        <td>Áo sọc ngang</td>
+        <td id="ngang-count" class="count">0</td>
+      </tr>
+      <tr>
+        <td>Áo trơn</td>
+        <td id="tron-count" class="count">0</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    // Biến đếm
+    let counters = { doc: 0, ngang: 0, tron: 0 };
+
+    // Pusher config với app_key của bạn
+    Pusher.logToConsole = false;
+    var pusher = new Pusher('5dd6bcc64fd5e7e49474', { cluster: 'ap1' });
+    var channel = pusher.subscribe('my-channel');
+
+    // Nhận dữ liệu từ server Python
+    channel.bind('my-event', function(data) {
+      let shirt = data.shirt;
+      if (shirt === "Áo sọc dọc") {
+        counters.doc++;
+        document.getElementById("doc-count").textContent = counters.doc;
+      } else if (shirt === "Áo sọc ngang") {
+        counters.ngang++;
+        document.getElementById("ngang-count").textContent = counters.ngang;
+      } else if (shirt === "Áo trơn") {
+        counters.tron++;
+        document.getElementById("tron-count").textContent = counters.tron;
+      }
+    });
+
+    // Reset từ Python (trigger reset-event)
+    channel.bind('reset-event', function(data) {
+      counters = { doc: 0, ngang: 0, tron: 0 };
+      document.getElementById("doc-count").textContent = 0;
+      document.getElementById("ngang-count").textContent = 0;
+      document.getElementById("tron-count").textContent = 0;
+      console.log("🔄 Đã reset từ Python → Web");
+    });
+  </script>
+</body>
+</html>
